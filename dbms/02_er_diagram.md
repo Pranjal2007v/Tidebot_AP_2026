@@ -20,7 +20,7 @@ erDiagram
     }
 
     REPO_CONFIG {
-        text    repo PK FK
+        text    repo PK, FK
         bool    auto_label
         bool    size_labels
         bool    star_gate
