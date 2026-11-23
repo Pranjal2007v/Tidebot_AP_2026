@@ -1,0 +1,26 @@
+-- Plan for Q5-C: Total kudos given in a repo
+-- Section: 5. Kudos
+-- Query:
+-- SELECT SUM(kudos_count) AS total_kudos FROM kudos WHERE repo = 'org_1/repo_1';
+
+ Aggregate  (cost=20.51..20.52 rows=1 width=8) (actual time=0.024..0.024 rows=1.00 loops=1)
+   Buffers: shared hit=13
+   ->  Bitmap Heap Scan on kudos  (cost=4.42..20.46 rows=19 width=4) (actual time=0.010..0.021 rows=19.00 loops=1)
+         Recheck Cond: (repo = 'org_1/repo_1'::text)
+         Heap Blocks: exact=11
+         Buffers: shared hit=13
+         ->  Bitmap Index Scan on kudos_pkey  (cost=0.00..4.42 rows=19 width=0) (actual time=0.006..0.006 rows=20.00 loops=1)
+               Index Cond: (repo = 'org_1/repo_1'::text)
+               Index Searches: 1
+               Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=73
+ Planning Time: 0.139 ms
+ Execution Time: 0.044 ms
+(14 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.139 ms, Execution=0.044 ms, Total=0.183 ms
+-- Run 2: Planning=0.135 ms, Execution=0.044 ms, Total=0.179 ms
+-- Run 3: Planning=0.139 ms, Execution=0.043 ms, Total=0.182 ms
+-- Average: Planning=0.138 ms, Execution=0.044 ms, Total=0.181 ms

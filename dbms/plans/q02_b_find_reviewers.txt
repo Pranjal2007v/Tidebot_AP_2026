@@ -1,0 +1,47 @@
+-- Plan for Q2-B: Find reviewers for a changed file
+-- Section: 2. Reviewer rules
+-- Query:
+-- SELECT rr.position, rr.pattern, rro.owner
+  FROM reviewer_rules rr
+  JOIN reviewer_rule_owners rro
+    ON rro.repo = rr.repo AND rro.position = rr.position
+ WHERE rr.repo = 'org_1/repo_1'
+ ORDER BY rr.position;
+
+ Sort  (cost=21.49..21.51 rows=10 width=18) (actual time=0.038..0.038 rows=10.00 loops=1)
+   Sort Key: rr."position"
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=11
+   ->  Hash Join  (cost=12.79..21.32 rows=10 width=18) (actual time=0.027..0.029 rows=10.00 loops=1)
+         Hash Cond: (rro."position" = rr."position")
+         Buffers: shared hit=8
+         ->  Bitmap Heap Scan on reviewer_rule_owners rro  (cost=4.35..12.83 rows=10 width=26) (actual time=0.011..0.012 rows=10.00 loops=1)
+               Recheck Cond: (repo = 'org_1/repo_1'::text)
+               Heap Blocks: exact=2
+               Buffers: shared hit=4
+               ->  Bitmap Index Scan on reviewer_rule_owners_pkey  (cost=0.00..4.35 rows=10 width=0) (actual time=0.005..0.005 rows=12.00 loops=1)
+                     Index Cond: (repo = 'org_1/repo_1'::text)
+                     Index Searches: 1
+                     Buffers: shared hit=2
+         ->  Hash  (cost=8.37..8.37 rows=5 width=24) (actual time=0.012..0.012 rows=5.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               Buffers: shared hit=4
+               ->  Bitmap Heap Scan on reviewer_rules rr  (cost=4.31..8.37 rows=5 width=24) (actual time=0.008..0.010 rows=5.00 loops=1)
+                     Recheck Cond: (repo = 'org_1/repo_1'::text)
+                     Heap Blocks: exact=2
+                     Buffers: shared hit=4
+                     ->  Bitmap Index Scan on reviewer_rules_pkey  (cost=0.00..4.31 rows=5 width=0) (actual time=0.005..0.005 rows=6.00 loops=1)
+                           Index Cond: (repo = 'org_1/repo_1'::text)
+                           Index Searches: 1
+                           Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=140
+ Planning Time: 0.215 ms
+ Execution Time: 0.058 ms
+(30 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.215 ms, Execution=0.058 ms, Total=0.273 ms
+-- Run 2: Planning=0.242 ms, Execution=0.057 ms, Total=0.299 ms
+-- Run 3: Planning=0.226 ms, Execution=0.058 ms, Total=0.284 ms
+-- Average: Planning=0.228 ms, Execution=0.058 ms, Total=0.285 ms

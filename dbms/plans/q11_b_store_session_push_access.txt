@@ -1,0 +1,27 @@
+-- Plan for Q11-B: Store repo push-access flag for a session
+-- Section: 11. Web sessions
+-- Query:
+-- INSERT INTO session_push_access (session_id, repo, can_push)
+VALUES ('sess_1_1795457280', 'org_1/repo_1', TRUE)
+ON CONFLICT (session_id, repo)
+DO UPDATE SET can_push = EXCLUDED.can_push;
+
+ Insert on session_push_access  (cost=0.00..0.01 rows=0 width=0) (actual time=0.060..0.061 rows=0.00 loops=1)
+   Conflict Resolution: UPDATE
+   Conflict Arbiter Indexes: session_push_access_pkey
+   Tuples Inserted: 1
+   Conflicting Tuples: 0
+   Buffers: shared hit=13
+   ->  Result  (cost=0.00..0.01 rows=1 width=65) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=36
+ Planning Time: 0.037 ms
+ Trigger for constraint session_push_access_session_id_fkey: time=0.175 calls=1
+ Execution Time: 0.276 ms
+(12 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.037 ms, Execution=0.276 ms, Total=0.313 ms
+-- Run 2: Planning=0.038 ms, Execution=0.268 ms, Total=0.306 ms
+-- Run 3: Planning=0.039 ms, Execution=0.273 ms, Total=0.312 ms
+-- Average: Planning=0.038 ms, Execution=0.272 ms, Total=0.310 ms

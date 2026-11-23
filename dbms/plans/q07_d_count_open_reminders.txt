@@ -1,0 +1,20 @@
+-- Plan for Q7-D: Count open reminders across all repos
+-- Section: 7. Reminders
+-- Query:
+-- SELECT COUNT(*) AS open_reminders FROM reminders;
+
+ Aggregate  (cost=25.50..25.51 rows=1 width=8) (actual time=0.058..0.059 rows=1.00 loops=1)
+   Buffers: shared hit=13
+   ->  Seq Scan on reminders  (cost=0.00..23.00 rows=1000 width=0) (actual time=0.005..0.038 rows=1000.00 loops=1)
+         Buffers: shared hit=13
+ Planning:
+   Buffers: shared hit=81
+ Planning Time: 0.138 ms
+ Execution Time: 0.079 ms
+(8 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.138 ms, Execution=0.079 ms, Total=0.217 ms
+-- Run 2: Planning=0.137 ms, Execution=0.076 ms, Total=0.213 ms
+-- Run 3: Planning=0.137 ms, Execution=0.073 ms, Total=0.210 ms
+-- Average: Planning=0.137 ms, Execution=0.076 ms, Total=0.213 ms

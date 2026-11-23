@@ -1,0 +1,23 @@
+-- Plan for Q0-C: Prune expired web_sessions
+-- Section: 0. Setup helpers
+-- Query:
+-- DELETE FROM web_sessions WHERE expires_at < extract(epoch from now());
+
+ Delete on web_sessions  (cost=0.00..4.00 rows=0 width=0) (actual time=0.058..0.058 rows=0.00 loops=1)
+   Buffers: shared hit=97
+   ->  Seq Scan on web_sessions  (cost=0.00..4.00 rows=44 width=6) (actual time=0.006..0.023 rows=46.00 loops=1)
+         Filter: (expires_at < (EXTRACT(epoch FROM now()))::double precision)
+         Rows Removed by Filter: 54
+         Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=51
+ Planning Time: 0.190 ms
+ Trigger for constraint session_push_access_session_id_fkey: time=0.365 calls=46
+ Execution Time: 0.462 ms
+(11 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.190 ms, Execution=0.462 ms, Total=0.652 ms
+-- Run 2: Planning=0.160 ms, Execution=0.415 ms, Total=0.575 ms
+-- Run 3: Planning=0.161 ms, Execution=0.397 ms, Total=0.558 ms
+-- Average: Planning=0.170 ms, Execution=0.425 ms, Total=0.595 ms

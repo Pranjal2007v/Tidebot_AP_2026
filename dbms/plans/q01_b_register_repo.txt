@@ -1,0 +1,27 @@
+-- Plan for Q1-B: Register a repo for an installation
+-- Section: 1. Installation & repo management
+-- Query:
+-- INSERT INTO repos (repo, installation_id, duplicates_caught)
+VALUES ('org_1/new_sample_repo', 1, 0)
+ON CONFLICT (repo)
+DO UPDATE SET installation_id = EXCLUDED.installation_id;
+
+ Insert on repos  (cost=0.00..0.01 rows=0 width=0) (actual time=0.059..0.059 rows=0.00 loops=1)
+   Conflict Resolution: UPDATE
+   Conflict Arbiter Indexes: repos_pkey
+   Tuples Inserted: 1
+   Conflicting Tuples: 0
+   Buffers: shared hit=14
+   ->  Result  (cost=0.00..0.01 rows=1 width=44) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=30
+ Planning Time: 0.048 ms
+ Trigger for constraint repos_installation_id_fkey: time=0.177 calls=1
+ Execution Time: 0.277 ms
+(12 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.048 ms, Execution=0.277 ms, Total=0.325 ms
+-- Run 2: Planning=0.044 ms, Execution=0.254 ms, Total=0.298 ms
+-- Run 3: Planning=0.040 ms, Execution=0.451 ms, Total=0.491 ms
+-- Average: Planning=0.044 ms, Execution=0.327 ms, Total=0.371 ms

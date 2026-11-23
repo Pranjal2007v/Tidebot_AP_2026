@@ -1,0 +1,22 @@
+-- Plan for Q7-C: Delete a reminder after it has fired
+-- Section: 7. Reminders
+-- Query:
+-- DELETE FROM reminders WHERE reminder_id = 1;
+
+ Delete on reminders  (cost=0.28..8.29 rows=0 width=0) (actual time=0.017..0.017 rows=0.00 loops=1)
+   Buffers: shared hit=7
+   ->  Index Scan using reminders_pkey on reminders  (cost=0.28..8.29 rows=1 width=6) (actual time=0.010..0.010 rows=1.00 loops=1)
+         Index Cond: (reminder_id = 1)
+         Index Searches: 1
+         Buffers: shared hit=6
+ Planning:
+   Buffers: shared hit=81
+ Planning Time: 0.150 ms
+ Execution Time: 0.059 ms
+(10 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.150 ms, Execution=0.059 ms, Total=0.209 ms
+-- Run 2: Planning=0.148 ms, Execution=0.060 ms, Total=0.208 ms
+-- Run 3: Planning=0.143 ms, Execution=0.057 ms, Total=0.200 ms
+-- Average: Planning=0.147 ms, Execution=0.059 ms, Total=0.206 ms

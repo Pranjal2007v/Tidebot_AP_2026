@@ -1,0 +1,18 @@
+-- Plan for Q4-A: Record an allowed command invocation
+-- Section: 4. Rate limiting
+-- Query:
+-- INSERT INTO command_hits (repo, user_login, hit_at) VALUES ('org_1/repo_1', 'user_1', extract(epoch from clock_timestamp()));
+
+ Insert on command_hits  (cost=0.00..0.02 rows=0 width=0) (actual time=0.133..0.133 rows=0.00 loops=1)
+   Buffers: shared hit=65
+   ->  Result  (cost=0.00..0.02 rows=1 width=72) (actual time=0.030..0.030 rows=1.00 loops=1)
+ Planning Time: 0.020 ms
+ Trigger for constraint command_hits_repo_fkey: time=0.208 calls=1
+ Execution Time: 0.357 ms
+(6 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.020 ms, Execution=0.357 ms, Total=0.377 ms
+-- Run 2: Planning=0.019 ms, Execution=0.332 ms, Total=0.351 ms
+-- Run 3: Planning=0.021 ms, Execution=0.334 ms, Total=0.355 ms
+-- Average: Planning=0.020 ms, Execution=0.341 ms, Total=0.361 ms

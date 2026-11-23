@@ -1,0 +1,27 @@
+-- Plan for Q4-B: Per-user count in the last hour
+-- Section: 4. Rate limiting
+-- Query:
+-- SELECT COUNT(*) AS hit_count
+  FROM command_hits
+ WHERE repo       = 'org_1/repo_1'
+   AND user_login = 'user_1'
+   AND hit_at > extract(epoch from now()) - 3600;
+
+ Aggregate  (cost=4.32..4.33 rows=1 width=8) (actual time=0.042..0.043 rows=1.00 loops=1)
+   Buffers: shared hit=4
+   ->  Index Only Scan using command_hits_pkey on command_hits  (cost=0.29..4.32 rows=1 width=0) (actual time=0.041..0.041 rows=0.00 loops=1)
+         Index Cond: ((repo = 'org_1/repo_1'::text) AND (user_login = 'user_1'::text) AND (hit_at > ((EXTRACT(epoch FROM now()) - '3600'::numeric))::double precision))
+         Heap Fetches: 3
+         Index Searches: 1
+         Buffers: shared hit=4
+ Planning:
+   Buffers: shared hit=107
+ Planning Time: 0.231 ms
+ Execution Time: 0.058 ms
+(11 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.231 ms, Execution=0.058 ms, Total=0.289 ms
+-- Run 2: Planning=0.215 ms, Execution=0.024 ms, Total=0.239 ms
+-- Run 3: Planning=0.212 ms, Execution=0.023 ms, Total=0.235 ms
+-- Average: Planning=0.219 ms, Execution=0.035 ms, Total=0.254 ms

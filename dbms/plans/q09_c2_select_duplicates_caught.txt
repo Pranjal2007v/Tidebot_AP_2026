@@ -1,0 +1,20 @@
+-- Plan for Q9-C2: Select duplicates caught for a repo
+-- Section: 9. Review counts
+-- Query:
+-- SELECT duplicates_caught FROM repos WHERE repo = 'org_1/repo_1';
+
+ Seq Scan on repos  (cost=0.00..2.25 rows=1 width=4) (actual time=0.006..0.008 rows=1.00 loops=1)
+   Filter: (repo = 'org_1/repo_1'::text)
+   Rows Removed by Filter: 99
+   Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=67
+ Planning Time: 0.124 ms
+ Execution Time: 0.021 ms
+(8 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.124 ms, Execution=0.021 ms, Total=0.145 ms
+-- Run 2: Planning=0.116 ms, Execution=0.018 ms, Total=0.134 ms
+-- Run 3: Planning=0.126 ms, Execution=0.020 ms, Total=0.146 ms
+-- Average: Planning=0.122 ms, Execution=0.020 ms, Total=0.142 ms

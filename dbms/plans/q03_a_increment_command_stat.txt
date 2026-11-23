@@ -1,0 +1,27 @@
+-- Plan for Q3-A: Increment a command counter (upsert)
+-- Section: 3. Command stats
+-- Query:
+-- INSERT INTO command_stats (repo, command, run_count)
+VALUES ('org_1/repo_1', 'review', 1)
+ON CONFLICT (repo, command)
+DO UPDATE SET run_count = command_stats.run_count + 1;
+
+ Insert on command_stats  (cost=0.00..0.01 rows=0 width=0) (actual time=0.090..0.090 rows=0.00 loops=1)
+   Conflict Resolution: UPDATE
+   Conflict Arbiter Indexes: command_stats_pkey
+   Tuples Inserted: 1
+   Conflicting Tuples: 0
+   Buffers: shared hit=15
+   ->  Result  (cost=0.00..0.01 rows=1 width=68) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=33
+ Planning Time: 0.036 ms
+ Trigger for constraint command_stats_repo_fkey: time=0.168 calls=1
+ Execution Time: 0.300 ms
+(12 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.036 ms, Execution=0.300 ms, Total=0.336 ms
+-- Run 2: Planning=0.034 ms, Execution=0.263 ms, Total=0.297 ms
+-- Run 3: Planning=0.036 ms, Execution=0.274 ms, Total=0.310 ms
+-- Average: Planning=0.035 ms, Execution=0.279 ms, Total=0.314 ms

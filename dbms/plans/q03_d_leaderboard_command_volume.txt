@@ -1,0 +1,28 @@
+-- Plan for Q3-D: Top repos by command volume (leaderboard)
+-- Section: 3. Command stats
+-- Query:
+-- SELECT repo, SUM(run_count) AS total FROM command_stats GROUP BY repo ORDER BY total DESC LIMIT 10;
+
+ Limit  (cost=25.16..25.19 rows=10 width=22) (actual time=0.112..0.112 rows=10.00 loops=1)
+   Buffers: shared hit=10
+   ->  Sort  (cost=25.16..25.41 rows=100 width=22) (actual time=0.111..0.112 rows=10.00 loops=1)
+         Sort Key: (sum(run_count)) DESC
+         Sort Method: top-N heapsort  Memory: 26kB
+         Buffers: shared hit=10
+         ->  HashAggregate  (cost=22.00..23.00 rows=100 width=22) (actual time=0.097..0.101 rows=100.00 loops=1)
+               Group Key: repo
+               Batches: 1  Memory Usage: 32kB
+               Buffers: shared hit=7
+               ->  Seq Scan on command_stats  (cost=0.00..17.00 rows=1000 width=18) (actual time=0.004..0.031 rows=1000.00 loops=1)
+                     Buffers: shared hit=7
+ Planning:
+   Buffers: shared hit=94
+ Planning Time: 0.151 ms
+ Execution Time: 0.135 ms
+(16 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.151 ms, Execution=0.135 ms, Total=0.286 ms
+-- Run 2: Planning=0.148 ms, Execution=0.135 ms, Total=0.283 ms
+-- Run 3: Planning=0.151 ms, Execution=0.136 ms, Total=0.287 ms
+-- Average: Planning=0.150 ms, Execution=0.135 ms, Total=0.285 ms

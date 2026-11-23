@@ -1,0 +1,22 @@
+-- Plan for Q1-D: Update a single config flag for a repo
+-- Section: 1. Installation & repo management
+-- Query:
+-- UPDATE repo_config SET star_gate = TRUE WHERE repo = 'org_1/repo_1';
+
+ Update on repo_config  (cost=0.00..2.25 rows=0 width=0) (actual time=0.033..0.033 rows=0.00 loops=1)
+   Buffers: shared hit=7
+   ->  Seq Scan on repo_config  (cost=0.00..2.25 rows=1 width=7) (actual time=0.006..0.008 rows=1.00 loops=1)
+         Filter: (repo = 'org_1/repo_1'::text)
+         Rows Removed by Filter: 99
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=67
+ Planning Time: 0.140 ms
+ Execution Time: 0.073 ms
+(10 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.140 ms, Execution=0.073 ms, Total=0.213 ms
+-- Run 2: Planning=0.115 ms, Execution=0.066 ms, Total=0.181 ms
+-- Run 3: Planning=0.117 ms, Execution=0.072 ms, Total=0.189 ms
+-- Average: Planning=0.124 ms, Execution=0.070 ms, Total=0.194 ms

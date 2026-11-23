@@ -1,0 +1,18 @@
+-- Plan for Q11-A: Create a session after OAuth callback
+-- Section: 11. Web sessions
+-- Query:
+-- INSERT INTO web_sessions (session_id, login, token, expires_at)
+VALUES ('sess_new_bench', 'user_1', 'gho_bench_token', extract(epoch from now()) + 3600);
+
+ Insert on web_sessions  (cost=0.00..0.02 rows=0 width=0) (actual time=0.115..0.115 rows=0.00 loops=1)
+   Buffers: shared hit=34
+   ->  Result  (cost=0.00..0.02 rows=1 width=104) (actual time=0.031..0.031 rows=1.00 loops=1)
+ Planning Time: 0.031 ms
+ Execution Time: 0.124 ms
+(5 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.031 ms, Execution=0.124 ms, Total=0.155 ms
+-- Run 2: Planning=0.029 ms, Execution=0.115 ms, Total=0.144 ms
+-- Run 3: Planning=0.030 ms, Execution=0.109 ms, Total=0.139 ms
+-- Average: Planning=0.030 ms, Execution=0.116 ms, Total=0.146 ms

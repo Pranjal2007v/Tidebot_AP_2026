@@ -1,0 +1,22 @@
+-- Plan for Q11-D: Check push access for a repo in a session
+-- Section: 11. Web sessions
+-- Query:
+-- SELECT can_push
+  FROM session_push_access
+ WHERE session_id = 'sess_1_1795457280' AND repo = 'org_1/repo_1';
+
+ Seq Scan on session_push_access  (cost=0.00..2.50 rows=1 width=1) (actual time=0.007..0.008 rows=0.00 loops=1)
+   Filter: ((session_id = 'sess_1_1795457280'::text) AND (repo = 'org_1/repo_1'::text))
+   Rows Removed by Filter: 100
+   Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=73
+ Planning Time: 0.133 ms
+ Execution Time: 0.019 ms
+(8 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.133 ms, Execution=0.019 ms, Total=0.152 ms
+-- Run 2: Planning=0.128 ms, Execution=0.018 ms, Total=0.146 ms
+-- Run 3: Planning=0.127 ms, Execution=0.017 ms, Total=0.144 ms
+-- Average: Planning=0.129 ms, Execution=0.018 ms, Total=0.147 ms

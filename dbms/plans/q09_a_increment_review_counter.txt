@@ -1,0 +1,26 @@
+-- Plan for Q9-A: Increment a review counter (upsert)
+-- Section: 9. Review counts
+-- Query:
+-- INSERT INTO review_counts (repo, command, review_count)
+VALUES ('org_1/repo_1', 'review', 1)
+ON CONFLICT (repo, command)
+DO UPDATE SET review_count = review_counts.review_count + 1;
+
+ Insert on review_counts  (cost=0.00..0.01 rows=0 width=0) (actual time=0.100..0.101 rows=0.00 loops=1)
+   Conflict Resolution: UPDATE
+   Conflict Arbiter Indexes: review_counts_pkey
+   Tuples Inserted: 0
+   Conflicting Tuples: 1
+   Buffers: shared hit=22
+   ->  Result  (cost=0.00..0.01 rows=1 width=68) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=33
+ Planning Time: 0.038 ms
+ Execution Time: 0.143 ms
+(11 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.038 ms, Execution=0.143 ms, Total=0.181 ms
+-- Run 2: Planning=0.035 ms, Execution=0.127 ms, Total=0.162 ms
+-- Run 3: Planning=0.034 ms, Execution=0.122 ms, Total=0.156 ms
+-- Average: Planning=0.036 ms, Execution=0.131 ms, Total=0.166 ms

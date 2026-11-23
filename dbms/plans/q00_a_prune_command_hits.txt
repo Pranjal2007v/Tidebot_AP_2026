@@ -1,0 +1,22 @@
+-- Plan for Q0-A: Prune command_hits older than 1 hour
+-- Section: 0. Setup helpers
+-- Query:
+-- DELETE FROM command_hits WHERE hit_at < extract(epoch from now()) - 3600;
+
+ Delete on command_hits  (cost=0.00..299.00 rows=0 width=0) (actual time=2.659..2.660 rows=0.00 loops=1)
+   Buffers: shared hit=5249
+   ->  Seq Scan on command_hits  (cost=0.00..299.00 rows=5178 width=6) (actual time=0.011..1.928 rows=5175.00 loops=1)
+         Filter: (hit_at < ((EXTRACT(epoch FROM now()) - '3600'::numeric))::double precision)
+         Rows Removed by Filter: 4825
+         Buffers: shared hit=74
+ Planning:
+   Buffers: shared hit=88
+ Planning Time: 0.597 ms
+ Execution Time: 2.710 ms
+(10 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.597 ms, Execution=2.710 ms, Total=3.307 ms
+-- Run 2: Planning=0.262 ms, Execution=4.146 ms, Total=4.408 ms
+-- Run 3: Planning=0.299 ms, Execution=3.496 ms, Total=3.795 ms
+-- Average: Planning=0.386 ms, Execution=3.451 ms, Total=3.837 ms

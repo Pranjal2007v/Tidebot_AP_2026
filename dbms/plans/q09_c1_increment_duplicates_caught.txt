@@ -1,0 +1,22 @@
+-- Plan for Q9-C1: Increment duplicates caught for a repo
+-- Section: 9. Review counts
+-- Query:
+-- UPDATE repos SET duplicates_caught = duplicates_caught + 1 WHERE repo = 'org_1/repo_1';
+
+ Update on repos  (cost=0.00..2.25 rows=0 width=0) (actual time=0.043..0.044 rows=0.00 loops=1)
+   Buffers: shared hit=28
+   ->  Seq Scan on repos  (cost=0.00..2.25 rows=1 width=10) (actual time=0.005..0.007 rows=1.00 loops=1)
+         Filter: (repo = 'org_1/repo_1'::text)
+         Rows Removed by Filter: 99
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=70
+ Planning Time: 0.124 ms
+ Execution Time: 0.083 ms
+(10 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.124 ms, Execution=0.083 ms, Total=0.207 ms
+-- Run 2: Planning=0.128 ms, Execution=0.085 ms, Total=0.213 ms
+-- Run 3: Planning=0.128 ms, Execution=0.086 ms, Total=0.214 ms
+-- Average: Planning=0.127 ms, Execution=0.085 ms, Total=0.211 ms

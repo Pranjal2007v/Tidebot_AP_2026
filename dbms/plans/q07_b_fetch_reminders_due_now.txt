@@ -1,0 +1,50 @@
+-- Plan for Q7-B: Fetch all reminders due now
+-- Section: 7. Reminders
+-- Query:
+-- SELECT r.reminder_id, r.repo, r.number, r.author, r.due_at, r.text,
+       i.installation_id, i.ai_url, i.ai_model, i.ai_key
+  FROM reminders r
+  JOIN repos        rp ON rp.repo = r.repo
+  JOIN installations i  ON i.installation_id = rp.installation_id
+ WHERE r.due_at <= extract(epoch from now())
+ ORDER BY r.due_at;
+
+ Sort  (cost=44.09..44.63 rows=213 width=120) (actual time=0.128..0.132 rows=219.00 loops=1)
+   Sort Key: r.due_at
+   Sort Method: quicksort  Memory: 55kB
+   Buffers: shared hit=21
+   ->  Hash Join  (cost=17.43..35.86 rows=213 width=120) (actual time=0.033..0.092 rows=219.00 loops=1)
+         Hash Cond: (rp.installation_id = i.installation_id)
+         Buffers: shared hit=18
+         ->  Hash Join  (cost=13.18..31.02 rows=213 width=73) (actual time=0.023..0.067 rows=219.00 loops=1)
+               Hash Cond: (r.repo = rp.repo)
+               Buffers: shared hit=16
+               ->  Bitmap Heap Scan on reminders r  (cost=9.93..27.19 rows=213 width=65) (actual time=0.010..0.036 rows=219.00 loops=1)
+                     Recheck Cond: (due_at <= (EXTRACT(epoch FROM now()))::double precision)
+                     Heap Blocks: exact=13
+                     Buffers: shared hit=15
+                     ->  Bitmap Index Scan on reminders_due_idx  (cost=0.00..9.88 rows=213 width=0) (actual time=0.006..0.006 rows=219.00 loops=1)
+                           Index Cond: (due_at <= (EXTRACT(epoch FROM now()))::double precision)
+                           Index Searches: 1
+                           Buffers: shared hit=2
+               ->  Hash  (cost=2.00..2.00 rows=100 width=22) (actual time=0.010..0.010 rows=100.00 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 14kB
+                     Buffers: shared hit=1
+                     ->  Seq Scan on repos rp  (cost=0.00..2.00 rows=100 width=22) (actual time=0.001..0.004 rows=100.00 loops=1)
+                           Buffers: shared hit=1
+         ->  Hash  (cost=3.00..3.00 rows=100 width=55) (actual time=0.007..0.007 rows=100.00 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 17kB
+               Buffers: shared hit=2
+               ->  Seq Scan on installations i  (cost=0.00..3.00 rows=100 width=55) (actual time=0.002..0.004 rows=100.00 loops=1)
+                     Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=378
+ Planning Time: 0.451 ms
+ Execution Time: 0.154 ms
+(32 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.451 ms, Execution=0.154 ms, Total=0.605 ms
+-- Run 2: Planning=0.425 ms, Execution=0.149 ms, Total=0.574 ms
+-- Run 3: Planning=0.412 ms, Execution=0.148 ms, Total=0.560 ms
+-- Average: Planning=0.429 ms, Execution=0.150 ms, Total=0.580 ms

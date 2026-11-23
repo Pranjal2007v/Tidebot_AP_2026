@@ -1,0 +1,20 @@
+-- Plan for Q2-A3: Replace reviewer rules - Step 3: Insert owner for rule
+-- Section: 2. Reviewer rules
+-- Query:
+-- INSERT INTO reviewer_rule_owners (repo, position, owner) VALUES ('org_1/repo_1', 1, 'user_bench');
+
+ Insert on reviewer_rule_owners  (cost=0.00..0.01 rows=0 width=0) (actual time=0.079..0.079 rows=0.00 loops=1)
+   Buffers: shared hit=46
+   ->  Result  (cost=0.00..0.01 rows=1 width=68) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=3
+ Planning Time: 0.019 ms
+ Trigger for constraint reviewer_rule_owners_repo_position_fkey: time=0.205 calls=1
+ Execution Time: 0.297 ms
+(8 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.019 ms, Execution=0.297 ms, Total=0.316 ms
+-- Run 2: Planning=0.018 ms, Execution=0.287 ms, Total=0.305 ms
+-- Run 3: Planning=0.019 ms, Execution=0.308 ms, Total=0.327 ms
+-- Average: Planning=0.019 ms, Execution=0.297 ms, Total=0.316 ms

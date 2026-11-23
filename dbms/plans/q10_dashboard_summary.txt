@@ -1,0 +1,104 @@
+-- Plan for Q10: Dashboard summary (multi-lateral aggregate)
+-- Section: 10. Dashboard summary
+-- Query:
+-- SELECT
+    r.repo,
+    r.duplicates_caught,
+    COALESCE(cs.total_commands,  0)  AS total_commands,
+    COALESCE(rc.total_reviews,   0)  AS total_reviews,
+    COALESCE(km.total_kudos,     0)  AS total_kudos,
+    COALESCE(rm.open_reminders,  0)  AS open_reminders,
+    COALESCE(qw.median_wait,     0)  AS median_queue_wait_s,
+    COALESCE(qw.p95_wait,        0)  AS p95_queue_wait_s
+  FROM repos r
+  LEFT JOIN (
+      SELECT repo, SUM(run_count)    AS total_commands  FROM command_stats  WHERE repo = 'org_1/repo_1' GROUP BY repo
+  ) cs ON cs.repo = r.repo
+  LEFT JOIN (
+      SELECT repo, SUM(review_count) AS total_reviews   FROM review_counts  WHERE repo = 'org_1/repo_1' GROUP BY repo
+  ) rc ON rc.repo = r.repo
+  LEFT JOIN (
+      SELECT repo, SUM(kudos_count)  AS total_kudos     FROM kudos          WHERE repo = 'org_1/repo_1' GROUP BY repo
+  ) km ON km.repo = r.repo
+  LEFT JOIN (
+      SELECT repo, COUNT(*)          AS open_reminders  FROM reminders      WHERE repo = 'org_1/repo_1' GROUP BY repo
+  ) rm ON rm.repo = r.repo
+  LEFT JOIN (
+      SELECT repo,
+             percentile_cont(0.5)  WITHIN GROUP (ORDER BY wait_seconds) AS median_wait,
+             percentile_cont(0.95) WITHIN GROUP (ORDER BY wait_seconds) AS p95_wait
+        FROM queue_waits WHERE repo = 'org_1/repo_1' GROUP BY repo
+  ) qw ON qw.repo = r.repo
+ WHERE r.repo = 'org_1/repo_1';
+
+ Nested Loop Left Join  (cost=22.92..111.49 rows=1 width=66) (actual time=0.119..0.122 rows=1.00 loops=1)
+   Buffers: shared hit=47
+   ->  Nested Loop Left Join  (cost=13.09..68.63 rows=1 width=50) (actual time=0.079..0.082 rows=1.00 loops=1)
+         Buffers: shared hit=35
+         ->  Nested Loop Left Join  (cost=13.09..43.07 rows=1 width=42) (actual time=0.041..0.043 rows=1.00 loops=1)
+               Buffers: shared hit=22
+               ->  Nested Loop Left Join  (cost=8.66..22.53 rows=1 width=34) (actual time=0.023..0.026 rows=1.00 loops=1)
+                     Buffers: shared hit=9
+                     ->  Nested Loop Left Join  (cost=4.35..14.12 rows=1 width=26) (actual time=0.016..0.018 rows=1.00 loops=1)
+                           Buffers: shared hit=5
+                           ->  Seq Scan on repos r  (cost=0.00..2.25 rows=1 width=18) (actual time=0.003..0.005 rows=1.00 loops=1)
+                                 Filter: (repo = 'org_1/repo_1'::text)
+                                 Rows Removed by Filter: 99
+                                 Buffers: shared hit=1
+                           ->  GroupAggregate  (cost=4.35..11.85 rows=1 width=22) (actual time=0.012..0.012 rows=1.00 loops=1)
+                                 Buffers: shared hit=4
+                                 ->  Bitmap Heap Scan on command_stats  (cost=4.35..11.81 rows=10 width=18) (actual time=0.009..0.010 rows=10.00 loops=1)
+                                       Recheck Cond: (repo = 'org_1/repo_1'::text)
+                                       Heap Blocks: exact=2
+                                       Buffers: shared hit=4
+                                       ->  Bitmap Index Scan on command_stats_pkey  (cost=0.00..4.35 rows=10 width=0) (actual time=0.006..0.006 rows=11.00 loops=1)
+                                             Index Cond: (repo = 'org_1/repo_1'::text)
+                                             Index Searches: 1
+                                             Buffers: shared hit=2
+                     ->  GroupAggregate  (cost=4.31..8.40 rows=1 width=22) (actual time=0.007..0.007 rows=1.00 loops=1)
+                           Buffers: shared hit=4
+                           ->  Bitmap Heap Scan on review_counts  (cost=4.31..8.37 rows=5 width=18) (actual time=0.005..0.006 rows=5.00 loops=1)
+                                 Recheck Cond: (repo = 'org_1/repo_1'::text)
+                                 Heap Blocks: exact=2
+                                 Buffers: shared hit=4
+                                 ->  Bitmap Index Scan on review_counts_pkey  (cost=0.00..4.31 rows=5 width=0) (actual time=0.004..0.004 rows=6.00 loops=1)
+                                       Index Cond: (repo = 'org_1/repo_1'::text)
+                                       Index Searches: 1
+                                       Buffers: shared hit=2
+               ->  GroupAggregate  (cost=4.42..20.52 rows=1 width=22) (actual time=0.017..0.017 rows=1.00 loops=1)
+                     Buffers: shared hit=13
+                     ->  Bitmap Heap Scan on kudos  (cost=4.42..20.46 rows=19 width=18) (actual time=0.006..0.016 rows=19.00 loops=1)
+                           Recheck Cond: (repo = 'org_1/repo_1'::text)
+                           Heap Blocks: exact=11
+                           Buffers: shared hit=13
+                           ->  Bitmap Index Scan on kudos_pkey  (cost=0.00..4.42 rows=19 width=0) (actual time=0.004..0.004 rows=20.00 loops=1)
+                                 Index Cond: (repo = 'org_1/repo_1'::text)
+                                 Index Searches: 1
+                                 Buffers: shared hit=2
+         ->  GroupAggregate  (cost=0.00..25.54 rows=1 width=22) (actual time=0.038..0.038 rows=1.00 loops=1)
+               Buffers: shared hit=13
+               ->  Seq Scan on reminders  (cost=0.00..25.50 rows=10 width=14) (actual time=0.005..0.037 rows=10.00 loops=1)
+                     Filter: (repo = 'org_1/repo_1'::text)
+                     Rows Removed by Filter: 990
+                     Buffers: shared hit=13
+   ->  GroupAggregate  (cost=9.83..42.84 rows=1 width=29) (actual time=0.040..0.040 rows=1.00 loops=1)
+         Buffers: shared hit=12
+         ->  Bitmap Heap Scan on queue_waits  (cost=9.83..42.33 rows=200 width=21) (actual time=0.010..0.015 rows=200.00 loops=1)
+               Recheck Cond: (repo = 'org_1/repo_1'::text)
+               Heap Blocks: exact=2
+               Buffers: shared hit=4
+               ->  Bitmap Index Scan on queue_waits_pkey  (cost=0.00..9.78 rows=200 width=0) (actual time=0.007..0.007 rows=200.00 loops=1)
+                     Index Cond: (repo = 'org_1/repo_1'::text)
+                     Index Searches: 1
+                     Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=256
+ Planning Time: 0.531 ms
+ Execution Time: 0.166 ms
+(64 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.531 ms, Execution=0.166 ms, Total=0.697 ms
+-- Run 2: Planning=0.520 ms, Execution=0.165 ms, Total=0.685 ms
+-- Run 3: Planning=0.495 ms, Execution=0.156 ms, Total=0.651 ms
+-- Average: Planning=0.515 ms, Execution=0.162 ms, Total=0.678 ms

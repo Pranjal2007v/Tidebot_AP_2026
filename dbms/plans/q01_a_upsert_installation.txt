@@ -1,0 +1,28 @@
+-- Plan for Q1-A: Upsert an installation
+-- Section: 1. Installation & repo management
+-- Query:
+-- INSERT INTO installations (installation_id, ai_url, ai_model, ai_key)
+VALUES (999, 'https://api.openai.com/v1', 'gpt-4o', 'sk-test-key')
+ON CONFLICT (installation_id)
+DO UPDATE SET ai_url   = EXCLUDED.ai_url,
+              ai_model = EXCLUDED.ai_model,
+              ai_key   = EXCLUDED.ai_key;
+
+ Insert on installations  (cost=0.00..0.01 rows=0 width=0) (actual time=0.083..0.084 rows=0.00 loops=1)
+   Conflict Resolution: UPDATE
+   Conflict Arbiter Indexes: installations_pkey
+   Tuples Inserted: 1
+   Conflicting Tuples: 0
+   Buffers: shared hit=14
+   ->  Result  (cost=0.00..0.01 rows=1 width=104) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=30
+ Planning Time: 0.050 ms
+ Execution Time: 0.119 ms
+(11 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.050 ms, Execution=0.119 ms, Total=0.169 ms
+-- Run 2: Planning=0.042 ms, Execution=0.099 ms, Total=0.141 ms
+-- Run 3: Planning=0.045 ms, Execution=0.103 ms, Total=0.148 ms
+-- Average: Planning=0.046 ms, Execution=0.107 ms, Total=0.153 ms

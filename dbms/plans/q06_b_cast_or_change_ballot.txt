@@ -1,0 +1,27 @@
+-- Plan for Q6-B: Cast or change a ballot (upsert)
+-- Section: 6. Votes
+-- Query:
+-- INSERT INTO vote_ballots (repo, number, voter, choice)
+VALUES ('org_1/repo_1', 1, 'user_1', 'yes')
+ON CONFLICT (repo, number, voter)
+DO UPDATE SET choice = EXCLUDED.choice;
+
+ Insert on vote_ballots  (cost=0.00..0.01 rows=0 width=0) (actual time=0.127..0.127 rows=0.00 loops=1)
+   Conflict Resolution: UPDATE
+   Conflict Arbiter Indexes: vote_ballots_pkey
+   Tuples Inserted: 1
+   Conflicting Tuples: 0
+   Buffers: shared hit=25
+   ->  Result  (cost=0.00..0.01 rows=1 width=100) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=44
+ Planning Time: 0.039 ms
+ Trigger for constraint vote_ballots_repo_number_fkey: time=0.201 calls=1
+ Execution Time: 0.369 ms
+(12 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.039 ms, Execution=0.369 ms, Total=0.408 ms
+-- Run 2: Planning=0.040 ms, Execution=0.327 ms, Total=0.367 ms
+-- Run 3: Planning=0.038 ms, Execution=0.315 ms, Total=0.353 ms
+-- Average: Planning=0.039 ms, Execution=0.337 ms, Total=0.376 ms

@@ -1,0 +1,23 @@
+-- Plan for Q11-C: Look up a session
+-- Section: 11. Web sessions
+-- Query:
+-- SELECT login, token, expires_at
+  FROM web_sessions
+ WHERE session_id = 'sess_1_1795457280'
+   AND expires_at > extract(epoch from now());
+
+ Seq Scan on web_sessions  (cost=0.00..4.25 rows=1 width=28) (actual time=0.008..0.008 rows=0.00 loops=1)
+   Filter: ((session_id = 'sess_1_1795457280'::text) AND (expires_at > (EXTRACT(epoch FROM now()))::double precision))
+   Rows Removed by Filter: 100
+   Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=81
+ Planning Time: 0.170 ms
+ Execution Time: 0.014 ms
+(8 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.170 ms, Execution=0.014 ms, Total=0.184 ms
+-- Run 2: Planning=0.179 ms, Execution=0.013 ms, Total=0.192 ms
+-- Run 3: Planning=0.171 ms, Execution=0.013 ms, Total=0.184 ms
+-- Average: Planning=0.173 ms, Execution=0.013 ms, Total=0.187 ms

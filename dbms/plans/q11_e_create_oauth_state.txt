@@ -1,0 +1,18 @@
+-- Plan for Q11-E: Create an OAuth state token
+-- Section: 11. Web sessions
+-- Query:
+-- INSERT INTO oauth_states (state, return_to, expires_at)
+VALUES ('state_bench_sample', '/dashboard', extract(epoch from now()) + 600);
+
+ Insert on oauth_states  (cost=0.00..0.02 rows=0 width=0) (actual time=0.089..0.089 rows=0.00 loops=1)
+   Buffers: shared hit=33
+   ->  Result  (cost=0.00..0.02 rows=1 width=72) (actual time=0.029..0.029 rows=1.00 loops=1)
+ Planning Time: 0.030 ms
+ Execution Time: 0.098 ms
+(5 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.030 ms, Execution=0.098 ms, Total=0.128 ms
+-- Run 2: Planning=0.031 ms, Execution=0.096 ms, Total=0.127 ms
+-- Run 3: Planning=0.030 ms, Execution=0.097 ms, Total=0.127 ms
+-- Average: Planning=0.030 ms, Execution=0.097 ms, Total=0.127 ms

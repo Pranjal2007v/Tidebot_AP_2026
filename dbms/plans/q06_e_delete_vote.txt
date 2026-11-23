@@ -1,0 +1,23 @@
+-- Plan for Q6-E: Delete a vote and its ballots
+-- Section: 6. Votes
+-- Query:
+-- DELETE FROM votes WHERE repo = 'org_1/repo_1' AND number = 2;
+
+ Delete on votes  (cost=0.00..6.00 rows=0 width=0) (actual time=0.031..0.032 rows=0.00 loops=1)
+   Buffers: shared hit=8
+   ->  Seq Scan on votes  (cost=0.00..6.00 rows=1 width=6) (actual time=0.003..0.010 rows=1.00 loops=1)
+         Filter: ((repo = 'org_1/repo_1'::text) AND (number = 2))
+         Rows Removed by Filter: 199
+         Buffers: shared hit=3
+ Planning:
+   Buffers: shared hit=86
+ Planning Time: 0.138 ms
+ Trigger for constraint vote_ballots_repo_number_fkey: time=0.145 calls=1
+ Execution Time: 0.215 ms
+(11 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.138 ms, Execution=0.215 ms, Total=0.353 ms
+-- Run 2: Planning=0.140 ms, Execution=0.203 ms, Total=0.343 ms
+-- Run 3: Planning=0.138 ms, Execution=0.201 ms, Total=0.339 ms
+-- Average: Planning=0.139 ms, Execution=0.206 ms, Total=0.345 ms

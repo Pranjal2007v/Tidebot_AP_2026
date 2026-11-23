@@ -1,0 +1,26 @@
+-- Plan for Q1-C: Insert default config for a new repo
+-- Section: 1. Installation & repo management
+-- Query:
+-- INSERT INTO repo_config (repo, auto_label, size_labels, star_gate,
+                         triage_label, pr_lint, duplicate_check)
+VALUES ('org_1/repo_1', TRUE, TRUE, FALSE, TRUE, TRUE, TRUE)
+ON CONFLICT (repo) DO NOTHING;
+
+ Insert on repo_config  (cost=0.00..0.01 rows=0 width=0) (actual time=0.025..0.026 rows=0.00 loops=1)
+   Conflict Resolution: NOTHING
+   Conflict Arbiter Indexes: repo_config_pkey
+   Tuples Inserted: 0
+   Conflicting Tuples: 1
+   Buffers: shared hit=11
+   ->  Result  (cost=0.00..0.01 rows=1 width=38) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=33
+ Planning Time: 0.036 ms
+ Execution Time: 0.039 ms
+(11 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.036 ms, Execution=0.039 ms, Total=0.075 ms
+-- Run 2: Planning=0.039 ms, Execution=0.039 ms, Total=0.078 ms
+-- Run 3: Planning=0.036 ms, Execution=0.038 ms, Total=0.074 ms
+-- Average: Planning=0.037 ms, Execution=0.039 ms, Total=0.076 ms

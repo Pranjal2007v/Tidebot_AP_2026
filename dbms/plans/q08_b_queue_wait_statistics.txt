@@ -1,0 +1,35 @@
+-- Plan for Q8-B: Queue wait statistics for a repo
+-- Section: 8. AI queue metrics
+-- Query:
+-- SELECT COUNT(*)                                                      AS sample_count,
+       ROUND(AVG(wait_seconds)::NUMERIC, 3)                         AS avg_wait,
+       ROUND(MIN(wait_seconds)::NUMERIC, 3)                         AS min_wait,
+       ROUND(MAX(wait_seconds)::NUMERIC, 3)                         AS max_wait,
+       ROUND(percentile_cont(0.5) WITHIN GROUP
+             (ORDER BY wait_seconds)::NUMERIC, 3)                   AS median_wait,
+       ROUND(percentile_cont(0.95) WITHIN GROUP
+             (ORDER BY wait_seconds)::NUMERIC, 3)                   AS p95_wait
+  FROM queue_waits
+ WHERE repo = 'org_1/repo_1';
+
+ Aggregate  (cost=44.84..44.87 rows=1 width=168) (actual time=0.055..0.055 rows=1.00 loops=1)
+   Buffers: shared hit=12
+   ->  Bitmap Heap Scan on queue_waits  (cost=9.83..42.33 rows=200 width=8) (actual time=0.013..0.018 rows=200.00 loops=1)
+         Recheck Cond: (repo = 'org_1/repo_1'::text)
+         Heap Blocks: exact=2
+         Buffers: shared hit=4
+         ->  Bitmap Index Scan on queue_waits_pkey  (cost=0.00..9.78 rows=200 width=0) (actual time=0.009..0.009 rows=200.00 loops=1)
+               Index Cond: (repo = 'org_1/repo_1'::text)
+               Index Searches: 1
+               Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=98
+ Planning Time: 0.153 ms
+ Execution Time: 0.076 ms
+(14 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.153 ms, Execution=0.076 ms, Total=0.229 ms
+-- Run 2: Planning=0.168 ms, Execution=0.080 ms, Total=0.248 ms
+-- Run 3: Planning=0.149 ms, Execution=0.071 ms, Total=0.220 ms
+-- Average: Planning=0.157 ms, Execution=0.076 ms, Total=0.232 ms

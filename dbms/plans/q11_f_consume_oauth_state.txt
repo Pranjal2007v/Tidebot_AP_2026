@@ -1,0 +1,25 @@
+-- Plan for Q11-F: Consume an OAuth state (validate and delete)
+-- Section: 11. Web sessions
+-- Query:
+-- DELETE FROM oauth_states
+ WHERE state = 'state_secret_1'
+   AND expires_at > extract(epoch from now())
+RETURNING return_to;
+
+ Delete on oauth_states  (cost=0.00..3.25 rows=1 width=6) (actual time=0.008..0.009 rows=0.00 loops=1)
+   Buffers: shared hit=1
+   ->  Seq Scan on oauth_states  (cost=0.00..3.25 rows=1 width=6) (actual time=0.008..0.008 rows=0.00 loops=1)
+         Filter: ((state = 'state_secret_1'::text) AND (expires_at > (EXTRACT(epoch FROM now()))::double precision))
+         Rows Removed by Filter: 100
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=75
+ Planning Time: 0.175 ms
+ Execution Time: 0.042 ms
+(10 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.175 ms, Execution=0.042 ms, Total=0.217 ms
+-- Run 2: Planning=0.170 ms, Execution=0.041 ms, Total=0.211 ms
+-- Run 3: Planning=0.171 ms, Execution=0.042 ms, Total=0.213 ms
+-- Average: Planning=0.172 ms, Execution=0.042 ms, Total=0.214 ms

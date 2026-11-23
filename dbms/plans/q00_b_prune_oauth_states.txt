@@ -1,0 +1,22 @@
+-- Plan for Q0-B: Prune expired oauth_states
+-- Section: 0. Setup helpers
+-- Query:
+-- DELETE FROM oauth_states WHERE expires_at < extract(epoch from now());
+
+ Delete on oauth_states  (cost=0.00..3.00 rows=0 width=0) (actual time=0.040..0.041 rows=0.00 loops=1)
+   Buffers: shared hit=47
+   ->  Seq Scan on oauth_states  (cost=0.00..3.00 rows=44 width=6) (actual time=0.006..0.022 rows=46.00 loops=1)
+         Filter: (expires_at < (EXTRACT(epoch FROM now()))::double precision)
+         Rows Removed by Filter: 54
+         Buffers: shared hit=1
+ Planning:
+   Buffers: shared hit=51
+ Planning Time: 0.206 ms
+ Execution Time: 0.084 ms
+(10 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.206 ms, Execution=0.084 ms, Total=0.290 ms
+-- Run 2: Planning=0.176 ms, Execution=0.080 ms, Total=0.256 ms
+-- Run 3: Planning=0.172 ms, Execution=0.075 ms, Total=0.247 ms
+-- Average: Planning=0.185 ms, Execution=0.080 ms, Total=0.264 ms

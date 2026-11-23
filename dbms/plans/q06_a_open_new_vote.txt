@@ -1,0 +1,20 @@
+-- Plan for Q6-A: Open a new vote
+-- Section: 6. Votes
+-- Query:
+-- INSERT INTO votes (repo, number, question, opened_by) VALUES ('org_1/repo_1', 99, 'Release v1.0?', 'user_1');
+
+ Insert on votes  (cost=0.00..0.01 rows=0 width=0) (actual time=0.095..0.095 rows=0.00 loops=1)
+   Buffers: shared hit=42
+   ->  Result  (cost=0.00..0.01 rows=1 width=100) (actual time=0.001..0.001 rows=1.00 loops=1)
+ Planning:
+   Buffers: shared hit=3
+ Planning Time: 0.020 ms
+ Trigger for constraint votes_repo_fkey: time=0.209 calls=1
+ Execution Time: 0.317 ms
+(8 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.020 ms, Execution=0.317 ms, Total=0.337 ms
+-- Run 2: Planning=0.018 ms, Execution=0.281 ms, Total=0.299 ms
+-- Run 3: Planning=0.020 ms, Execution=0.285 ms, Total=0.305 ms
+-- Average: Planning=0.019 ms, Execution=0.294 ms, Total=0.314 ms

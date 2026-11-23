@@ -1,0 +1,27 @@
+-- Plan for Q7-E: List reminders for a specific issue / PR
+-- Section: 7. Reminders
+-- Query:
+-- SELECT reminder_id, author, due_at, text
+  FROM reminders
+ WHERE repo = 'org_1/repo_1' AND number = 1
+ ORDER BY due_at;
+
+ Sort  (cost=28.01..28.02 rows=1 width=47) (actual time=0.046..0.046 rows=0.00 loops=1)
+   Sort Key: due_at
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=16
+   ->  Seq Scan on reminders  (cost=0.00..28.00 rows=1 width=47) (actual time=0.040..0.041 rows=0.00 loops=1)
+         Filter: ((repo = 'org_1/repo_1'::text) AND (number = 1))
+         Rows Removed by Filter: 1000
+         Buffers: shared hit=13
+ Planning:
+   Buffers: shared hit=125
+ Planning Time: 0.163 ms
+ Execution Time: 0.060 ms
+(12 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.163 ms, Execution=0.060 ms, Total=0.223 ms
+-- Run 2: Planning=0.170 ms, Execution=0.060 ms, Total=0.230 ms
+-- Run 3: Planning=0.166 ms, Execution=0.059 ms, Total=0.225 ms
+-- Average: Planning=0.166 ms, Execution=0.060 ms, Total=0.226 ms

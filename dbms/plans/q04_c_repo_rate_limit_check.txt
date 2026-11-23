@@ -1,0 +1,26 @@
+-- Plan for Q4-C: Per-repo count in the last hour
+-- Section: 4. Rate limiting
+-- Query:
+-- SELECT COUNT(*) AS hit_count
+  FROM command_hits
+ WHERE repo   = 'org_1/repo_1'
+   AND hit_at > extract(epoch from now()) - 3600;
+
+ Aggregate  (cost=5.49..5.50 rows=1 width=8) (actual time=0.140..0.141 rows=1.00 loops=1)
+   Buffers: shared hit=60
+   ->  Index Only Scan using command_hits_repo_idx on command_hits  (cost=0.29..5.36 rows=53 width=0) (actual time=0.036..0.136 rows=57.00 loops=1)
+         Index Cond: ((repo = 'org_1/repo_1'::text) AND (hit_at > ((EXTRACT(epoch FROM now()) - '3600'::numeric))::double precision))
+         Heap Fetches: 60
+         Index Searches: 1
+         Buffers: shared hit=60
+ Planning:
+   Buffers: shared hit=107
+ Planning Time: 0.232 ms
+ Execution Time: 0.158 ms
+(11 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.232 ms, Execution=0.158 ms, Total=0.390 ms
+-- Run 2: Planning=0.216 ms, Execution=0.084 ms, Total=0.300 ms
+-- Run 3: Planning=0.220 ms, Execution=0.088 ms, Total=0.308 ms
+-- Average: Planning=0.223 ms, Execution=0.110 ms, Total=0.333 ms

@@ -1,0 +1,42 @@
+-- Plan for Q8-A2: Record a queue wait - Step 2: Prune oldest rows keeping 200
+-- Section: 8. AI queue metrics
+-- Query:
+-- DELETE FROM queue_waits
+ WHERE repo = 'org_1/repo_1'
+   AND wait_seq <= (
+       SELECT MAX(wait_seq) - 200
+         FROM queue_waits
+        WHERE repo = 'org_1/repo_1'
+   );
+
+ Delete on queue_waits  (cost=5.32..36.32 rows=0 width=0) (actual time=0.038..0.038 rows=0.00 loops=1)
+   Buffers: shared hit=6
+   InitPlan 2
+     ->  Result  (cost=0.34..0.35 rows=1 width=4) (actual time=0.034..0.034 rows=1.00 loops=1)
+           Buffers: shared hit=4
+           InitPlan 1
+             ->  Limit  (cost=0.28..0.34 rows=1 width=4) (actual time=0.033..0.033 rows=1.00 loops=1)
+                   Buffers: shared hit=4
+                   ->  Index Only Scan Backward using queue_waits_pkey on queue_waits queue_waits_1  (cost=0.28..11.78 rows=200 width=4) (actual time=0.033..0.033 rows=1.00 loops=1)
+                         Index Cond: (repo = 'org_1/repo_1'::text)
+                         Heap Fetches: 1
+                         Index Searches: 1
+                         Buffers: shared hit=4
+   ->  Bitmap Heap Scan on queue_waits  (cost=4.97..35.97 rows=67 width=6) (actual time=0.037..0.037 rows=0.00 loops=1)
+         Recheck Cond: ((repo = 'org_1/repo_1'::text) AND (wait_seq <= (InitPlan 2).col1))
+         Buffers: shared hit=6
+         ->  Bitmap Index Scan on queue_waits_pkey  (cost=0.00..4.95 rows=67 width=0) (actual time=0.036..0.036 rows=0.00 loops=1)
+               Index Cond: ((repo = 'org_1/repo_1'::text) AND (wait_seq <= (InitPlan 2).col1))
+               Index Searches: 1
+               Buffers: shared hit=6
+ Planning:
+   Buffers: shared hit=104
+ Planning Time: 0.166 ms
+ Execution Time: 0.088 ms
+(24 rows)
+
+-- Timings across 3 runs:
+-- Run 1: Planning=0.166 ms, Execution=0.088 ms, Total=0.254 ms
+-- Run 2: Planning=0.168 ms, Execution=0.080 ms, Total=0.248 ms
+-- Run 3: Planning=0.162 ms, Execution=0.080 ms, Total=0.242 ms
+-- Average: Planning=0.165 ms, Execution=0.083 ms, Total=0.248 ms
