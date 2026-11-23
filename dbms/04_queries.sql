@@ -169,8 +169,9 @@ SELECT choice, COUNT(*) AS votes
  GROUP BY choice
  ORDER BY votes DESC;
 
--- 6-D. List all open votes in a repo (application decides what "open" means;
---      here we return all votes with at least one ballot in the last 7 days)
+-- 6-D. List the votes in a repo with their ballot counts. A vote row exists
+--      until 6-E deletes it, so every row returned is an open vote; the
+--      LEFT JOIN keeps votes that have no ballots yet (ballot_count = 0).
 SELECT v.number, v.question, v.opened_by,
        COUNT(b.voter) AS ballot_count
   FROM votes v
