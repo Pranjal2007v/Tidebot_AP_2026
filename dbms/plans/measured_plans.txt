@@ -1,0 +1,198 @@
+== Q1 installation credentials (1-E)
+                                                   QUERY PLAN                                                   
+----------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..3.36 rows=1 width=48) (actual time=0.008..0.015 rows=1 loops=1)
+   Join Filter: (r.installation_id = i.installation_id)
+   Rows Removed by Join Filter: 3
+   ->  Seq Scan on repos r  (cost=0.00..2.25 rows=1 width=8) (actual time=0.006..0.009 rows=1 loops=1)
+         Filter: (repo = 'org3/repo3'::text)
+         Rows Removed by Filter: 99
+   ->  Seq Scan on installations i  (cost=0.00..1.05 rows=5 width=48) (actual time=0.001..0.001 rows=4 loops=1)
+ Planning Time: 0.871 ms
+ Execution Time: 0.053 ms
+(9 rows)
+
+== Q2 per-user rate limit (4-B)
+                                                                              QUERY PLAN                                                                              
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=8.32..8.33 rows=1 width=8) (actual time=0.022..0.022 rows=1 loops=1)
+   ->  Index Only Scan using command_hits_pkey on command_hits  (cost=0.29..8.32 rows=1 width=0) (actual time=0.020..0.020 rows=0 loops=1)
+         Index Cond: ((repo = 'org3/repo3'::text) AND (user_login = 'user42'::text) AND (hit_at > ((EXTRACT(epoch FROM now()) - '3600'::numeric))::double precision))
+         Heap Fetches: 0
+ Planning Time: 0.308 ms
+ Execution Time: 0.037 ms
+(6 rows)
+
+== Q3 per-repo rate limit (4-C)
+                                                                QUERY PLAN                                                                
+------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=76.53..76.54 rows=1 width=8) (actual time=0.123..0.124 rows=1 loops=1)
+   ->  Bitmap Heap Scan on command_hits  (cost=4.82..76.40 rows=51 width=0) (actual time=0.026..0.120 rows=63 loops=1)
+         Recheck Cond: ((repo = 'org3/repo3'::text) AND (hit_at > ((EXTRACT(epoch FROM now()) - '3600'::numeric))::double precision))
+         Heap Blocks: exact=53
+         ->  Bitmap Index Scan on command_hits_repo_idx  (cost=0.00..4.80 rows=51 width=0) (actual time=0.019..0.020 rows=63 loops=1)
+               Index Cond: ((repo = 'org3/repo3'::text) AND (hit_at > ((EXTRACT(epoch FROM now()) - '3600'::numeric))::double precision))
+ Planning Time: 0.039 ms
+ Execution Time: 0.144 ms
+(8 rows)
+
+== Q4 dashboard summary (10)
+                                                                             QUERY PLAN                                                                              
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Hash Left Join  (cost=174.44..276.40 rows=375840 width=63) (actual time=0.451..0.460 rows=1 loops=1)
+   Hash Cond: (r.repo = qw.repo)
+   ->  Hash Left Join  (cost=23.12..65.68 rows=4320 width=47) (actual time=0.172..0.179 rows=1 loops=1)
+         Hash Cond: (r.repo = km.repo)
+         ->  Nested Loop Left Join  (cost=4.34..43.60 rows=240 width=39) (actual time=0.114..0.120 rows=1 loops=1)
+               Join Filter: (rm.repo = r.repo)
+               ->  Nested Loop Left Join  (cost=4.34..20.15 rows=24 width=31) (actual time=0.055..0.061 rows=1 loops=1)
+                     Join Filter: (cs.repo = r.repo)
+                     ->  Nested Loop Left Join  (cost=0.00..9.09 rows=3 width=23) (actual time=0.030..0.034 rows=1 loops=1)
+                           Join Filter: (review_counts.repo = r.repo)
+                           ->  Seq Scan on repos r  (cost=0.00..2.25 rows=1 width=15) (actual time=0.004..0.008 rows=1 loops=1)
+                                 Filter: (repo = 'org3/repo3'::text)
+                                 Rows Removed by Filter: 99
+                           ->  GroupAggregate  (cost=0.00..6.80 rows=3 width=19) (actual time=0.025..0.025 rows=1 loops=1)
+                                 Group Key: review_counts.repo
+                                 ->  Seq Scan on review_counts  (cost=0.00..6.75 rows=3 width=15) (actual time=0.009..0.022 rows=3 loops=1)
+                                       Filter: (repo = 'org3/repo3'::text)
+                                       Rows Removed by Filter: 297
+                     ->  Materialize  (cost=4.34..10.98 rows=8 width=19) (actual time=0.025..0.026 rows=1 loops=1)
+                           ->  Subquery Scan on cs  (cost=4.34..10.94 rows=8 width=19) (actual time=0.022..0.023 rows=1 loops=1)
+                                 ->  GroupAggregate  (cost=4.34..10.86 rows=8 width=19) (actual time=0.022..0.022 rows=1 loops=1)
+                                       Group Key: command_stats.repo
+                                       ->  Bitmap Heap Scan on command_stats  (cost=4.34..10.74 rows=8 width=15) (actual time=0.016..0.020 rows=8 loops=1)
+                                             Recheck Cond: (repo = 'org3/repo3'::text)
+                                             Heap Blocks: exact=5
+                                             ->  Bitmap Index Scan on command_stats_pkey  (cost=0.00..4.33 rows=8 width=0) (actual time=0.013..0.014 rows=8 loops=1)
+                                                   Index Cond: (repo = 'org3/repo3'::text)
+               ->  Materialize  (cost=0.00..22.80 rows=10 width=19) (actual time=0.058..0.058 rows=1 loops=1)
+                     ->  Subquery Scan on rm  (cost=0.00..22.75 rows=10 width=19) (actual time=0.057..0.057 rows=1 loops=1)
+                           ->  GroupAggregate  (cost=0.00..22.65 rows=10 width=19) (actual time=0.056..0.057 rows=1 loops=1)
+                                 Group Key: reminders.repo
+                                 ->  Seq Scan on reminders  (cost=0.00..22.50 rows=10 width=11) (actual time=0.003..0.055 rows=10 loops=1)
+                                       Filter: (repo = 'org3/repo3'::text)
+                                       Rows Removed by Filter: 990
+         ->  Hash  (cost=18.55..18.55 rows=18 width=19) (actual time=0.037..0.039 rows=1 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               ->  Subquery Scan on km  (cost=4.43..18.55 rows=18 width=19) (actual time=0.033..0.033 rows=1 loops=1)
+                     ->  GroupAggregate  (cost=4.43..18.37 rows=18 width=19) (actual time=0.033..0.033 rows=1 loops=1)
+                           Group Key: kudos.repo
+                           ->  Bitmap Heap Scan on kudos  (cost=4.43..18.09 rows=20 width=15) (actual time=0.019..0.030 rows=20 loops=1)
+                                 Recheck Cond: (repo = 'org3/repo3'::text)
+                                 Heap Blocks: exact=13
+                                 ->  Bitmap Index Scan on kudos_pkey  (cost=0.00..4.43 rows=20 width=0) (actual time=0.015..0.015 rows=20 loops=1)
+                                       Index Cond: (repo = 'org3/repo3'::text)
+   ->  Hash  (cost=150.23..150.23 rows=87 width=27) (actual time=0.267..0.267 rows=1 loops=1)
+         Buckets: 1024  Batches: 1  Memory Usage: 9kB
+         ->  Subquery Scan on qw  (cost=9.84..150.23 rows=87 width=27) (actual time=0.263..0.263 rows=1 loops=1)
+               ->  GroupAggregate  (cost=9.84..149.36 rows=87 width=27) (actual time=0.262..0.262 rows=1 loops=1)
+                     Group Key: queue_waits.repo
+                     ->  Bitmap Heap Scan on queue_waits  (cost=9.84..147.06 rows=200 width=19) (actual time=0.035..0.197 rows=200 loops=1)
+                           Recheck Cond: (repo = 'org3/repo3'::text)
+                           Heap Blocks: exact=129
+                           ->  Bitmap Index Scan on queue_waits_pkey  (cost=0.00..9.79 rows=200 width=0) (actual time=0.020..0.020 rows=201 loops=1)
+                                 Index Cond: (repo = 'org3/repo3'::text)
+ Planning Time: 0.936 ms
+ Execution Time: 0.662 ms
+(56 rows)
+
+== Q5 reminders due now (7-B)
+                                                                    QUERY PLAN                                                                    
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=16.68..16.69 rows=4 width=91) (actual time=0.049..0.050 rows=3 loops=1)
+   Sort Key: r.due_at
+   Sort Method: quicksort  Memory: 25kB
+   ->  Nested Loop  (cost=12.99..16.64 rows=4 width=91) (actual time=0.032..0.043 rows=3 loops=1)
+         ->  Hash Join  (cost=12.85..15.64 rows=4 width=51) (actual time=0.026..0.035 rows=3 loops=1)
+               Hash Cond: (rp.repo = r.repo)
+               ->  Seq Scan on repos rp  (cost=0.00..2.00 rows=100 width=19) (actual time=0.002..0.005 rows=100 loops=1)
+               ->  Hash  (cost=12.80..12.80 rows=4 width=43) (actual time=0.017..0.017 rows=3 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Bitmap Heap Scan on reminders r  (cost=4.31..12.80 rows=4 width=43) (actual time=0.012..0.013 rows=3 loops=1)
+                           Recheck Cond: (due_at <= (EXTRACT(epoch FROM now()))::double precision)
+                           Heap Blocks: exact=3
+                           ->  Bitmap Index Scan on reminders_due_idx  (cost=0.00..4.31 rows=4 width=0) (actual time=0.009..0.009 rows=3 loops=1)
+                                 Index Cond: (due_at <= (EXTRACT(epoch FROM now()))::double precision)
+         ->  Index Scan using installations_pkey on installations i  (cost=0.13..0.27 rows=1 width=48) (actual time=0.002..0.002 rows=1 loops=3)
+               Index Cond: (installation_id = rp.installation_id)
+ Planning Time: 0.379 ms
+ Execution Time: 0.103 ms
+(18 rows)
+
+== Q6 session lookup (11-C)
+                                                           QUERY PLAN                                                            
+---------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using web_sessions_pkey on web_sessions  (cost=0.27..8.30 rows=1 width=24) (actual time=0.018..0.019 rows=1 loops=1)
+   Index Cond: (session_id = 'sess-42'::text)
+   Filter: (expires_at > (EXTRACT(epoch FROM now()))::double precision)
+ Planning Time: 0.132 ms
+ Execution Time: 0.025 ms
+(5 rows)
+
+== Q7 queue wait statistics (8-B)
+                                                            QUERY PLAN                                                             
+-----------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=149.56..149.57 rows=1 width=48) (actual time=0.150..0.150 rows=1 loops=1)
+   ->  Bitmap Heap Scan on queue_waits  (cost=9.84..147.06 rows=200 width=8) (actual time=0.028..0.112 rows=200 loops=1)
+         Recheck Cond: (repo = 'org3/repo3'::text)
+         Heap Blocks: exact=129
+         ->  Bitmap Index Scan on queue_waits_pkey  (cost=0.00..9.79 rows=200 width=0) (actual time=0.017..0.017 rows=201 loops=1)
+               Index Cond: (repo = 'org3/repo3'::text)
+ Planning Time: 0.076 ms
+ Execution Time: 0.180 ms
+(8 rows)
+
+== Q8 vote tally (6-C)
+                                                               QUERY PLAN                                                               
+----------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=19.11..19.11 rows=3 width=12) (actual time=0.045..0.045 rows=3 loops=1)
+   Sort Key: (count(*)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  HashAggregate  (cost=19.05..19.08 rows=3 width=12) (actual time=0.029..0.030 rows=3 loops=1)
+         Group Key: choice
+         Batches: 1  Memory Usage: 24kB
+         ->  Bitmap Heap Scan on vote_ballots  (cost=4.38..19.00 rows=10 width=4) (actual time=0.018..0.024 rows=10 loops=1)
+               Recheck Cond: ((repo = 'org3/repo3'::text) AND (number = 1))
+               Heap Blocks: exact=10
+               ->  Bitmap Index Scan on vote_ballots_pkey  (cost=0.00..4.38 rows=10 width=0) (actual time=0.015..0.015 rows=10 loops=1)
+                     Index Cond: ((repo = 'org3/repo3'::text) AND (number = 1))
+ Planning Time: 0.185 ms
+ Execution Time: 0.067 ms
+(13 rows)
+
+== Q9 insert and prune queue_waits (8-A)
+                                                                                       QUERY PLAN                                                                                       
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Insert on queue_waits  (cost=2.61..2.63 rows=0 width=0) (actual time=0.053..0.053 rows=0 loops=1)
+   ->  Subquery Scan on "*SELECT*"  (cost=2.61..2.63 rows=1 width=44) (actual time=0.028..0.028 rows=1 loops=1)
+         ->  Result  (cost=2.61..2.62 rows=1 width=68) (actual time=0.026..0.026 rows=1 loops=1)
+               InitPlan 1 (returns $0)
+                 ->  Limit  (cost=0.29..2.61 rows=1 width=4) (actual time=0.023..0.024 rows=1 loops=1)
+                       ->  Index Only Scan Backward using queue_waits_pkey on queue_waits queue_waits_1  (cost=0.29..464.26 rows=200 width=4) (actual time=0.023..0.023 rows=1 loops=1)
+                             Index Cond: ((repo = 'org3/repo3'::text) AND (wait_seq IS NOT NULL))
+                             Heap Fetches: 2
+ Planning Time: 0.087 ms
+ Trigger for constraint queue_waits_repo_fkey: time=0.116 calls=1
+ Execution Time: 0.194 ms
+(11 rows)
+
+                                                                                     QUERY PLAN                                                                                     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Delete on queue_waits  (cost=7.59..119.79 rows=0 width=0) (actual time=0.028..0.028 rows=0 loops=1)
+   InitPlan 2 (returns $1)
+     ->  Result  (cost=2.61..2.62 rows=1 width=4) (actual time=0.022..0.022 rows=1 loops=1)
+           InitPlan 1 (returns $0)
+             ->  Limit  (cost=0.29..2.61 rows=1 width=4) (actual time=0.021..0.022 rows=1 loops=1)
+                   ->  Index Only Scan Backward using queue_waits_pkey on queue_waits queue_waits_1  (cost=0.29..464.26 rows=200 width=4) (actual time=0.021..0.021 rows=1 loops=1)
+                         Index Cond: ((repo = 'org3/repo3'::text) AND (wait_seq IS NOT NULL))
+                         Heap Fetches: 1
+   ->  Bitmap Heap Scan on queue_waits  (cost=4.97..117.17 rows=67 width=6) (actual time=0.026..0.026 rows=1 loops=1)
+         Recheck Cond: ((repo = 'org3/repo3'::text) AND (wait_seq <= $1))
+         Heap Blocks: exact=1
+         ->  Bitmap Index Scan on queue_waits_pkey  (cost=0.00..4.96 rows=67 width=0) (actual time=0.025..0.025 rows=1 loops=1)
+               Index Cond: ((repo = 'org3/repo3'::text) AND (wait_seq <= $1))
+ Planning Time: 0.060 ms
+ Execution Time: 0.088 ms
+(15 rows)
+
