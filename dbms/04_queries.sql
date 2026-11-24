@@ -174,7 +174,8 @@ SELECT choice, COUNT(*) AS votes
  ORDER BY votes DESC;
 
 -- 6-D. List all open votes in a repo  -- READ
---      Uses LEFT JOIN to include votes that have no ballots yet
+--      A vote row exists until 6-E deletes it; the LEFT JOIN keeps votes that
+--      have no ballots yet (ballot_count = 0).
 SELECT v.number, v.question, v.opened_by,
        COUNT(b.voter) AS ballot_count
   FROM votes v

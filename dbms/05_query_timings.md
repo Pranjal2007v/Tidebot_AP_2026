@@ -1037,6 +1037,27 @@ RETURNING return_to;
 
 ---
 
+## Measured plans (Baseline Script Verification)
+
+[`plans/seed.sql`](plans/seed.sql) builds the synthetic data described at the top of this page and [`plans/explain.sql`](plans/explain.sql) runs `EXPLAIN ANALYZE` on Q1 to Q9. [`plans/measured_plans.txt`](plans/measured_plans.txt) is the output from PostgreSQL on that data. To reproduce it:
+
+```bash
+psql -f dbms/03_schema.sql -f dbms/plans/seed.sql
+psql -f dbms/plans/explain.sql > dbms/plans/measured_plans.txt
+```
+
+The measured plans differ from the summaries above in three places:
+
+| Query | Summary above | Measured plan | Why |
+|-------|---------------|---------------|-----|
+| Q1 (1-E) | Index scans on both primary keys | Seq Scan on `repos` and on `installations` | With 100 repos and 5 installations each table fits in one or two pages, so reading the page is cheaper than going through the index. |
+| Q4 (10) | Hash joins, all sub-aggregates by PK/FK index | Nested loops; `reminders` is read with a Seq Scan and filtered by `repo` | `reminders` has an index on `due_at` only. This is the scan [`plans/idx_reminders_repo.sql`](plans/idx_reminders_repo.sql) removes. |
+| Q5 (7-B) | Index Scan on `reminders_due_idx`, nested loops | Bitmap scan on `reminders_due_idx`, then a hash join to `repos` (Seq Scan) | Three reminders were due, and hashing 100 repos once is cheaper than three index probes. |
+
+Q2, Q3 and Q6 to Q9 use the indexes named above. Every query ran in under 1 ms at this data size, so the absolute numbers say little; the plan shapes are what carry over to larger tables.
+
+---
+
 ## Index Summary & Optimization Analysis
 
 | Index Name | Table | Indexed Columns | Type / Access | Role & Query Coverage |
